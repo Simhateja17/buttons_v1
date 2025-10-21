@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>n8n Chat - Button Feature Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .info-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 { margin-top: 0; }
+        code {
+            background: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        .example {
+            background: #fafafa;
+            border-left: 4px solid #4caf50;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="info-panel">
+        <h1>🎉 n8n Chat - Button Feature Test</h1>
+        <p><strong>Status:</strong> Ready to test!</p>
+        
+        <h2>📋 Setup Instructions:</h2>
+        <ol>
+            <li>Make sure you've built the package: <code>pnpm build --filter @n8n/chat</code></li>
+            <li>Update the <code>webhookUrl</code> below with your n8n webhook URL</li>
+            <li>Open this file in a browser</li>
+            <li>Send button markup from your n8n workflow</li>
+        </ol>
+
+        <h2>🧪 Test Button Markup (send from n8n):</h2>
+        <div class="example">Choose your department:
+
+```buttons
+{
+  "title": "How can we help you?",
+  "options": [
+    {"label": "💼 Sales", "value": "SALES"},
+    {"label": "🛠️ Support", "value": "SUPPORT"},
+    {"label": "💳 Billing", "value": "BILLING"}
+  ]
+}
+```</div>
+
+        <h2>🔗 Expected Behavior:</h2>
+        <ul>
+            <li>✅ Text appears without the button markup</li>
+            <li>✅ Three buttons appear below the message</li>
+            <li>✅ Clicking a button sends its <code>value</code> back to n8n</li>
+            <li>✅ n8n receives "SALES", "SUPPORT", or "BILLING"</li>
+        </ul>
+    </div>
+
+    <!-- n8n Chat Widget will mount here -->
+    <div id="n8n-chat"></div>
+
+    <script type="module">
+        // Import the chat widget
+        // NOTE: Update the path if needed after building
+        import { createChat } from './dist/chat.bundle.es.js';
+
+        // Initialize the chat
+        createChat({
+            // Daniel's workflow webhook URL
+            webhookUrl: 'http://52.137.186.215:5678/webhook/bf551d75-6e6f-4c8d-b3c6-51f6d045446d/chat',
+            
+            // Optional: Add initial welcome messages
+            initialMessages: [
+                '👋 Welcome to n8n Chat!',
+                'This is a test of the new button feature.',
+                'Try sending button markup from your workflow!'
+            ],
+
+            // Optional: Custom callback for button actions
+            onAction: (action, value) => {
+                console.log('🔘 Button action:', action, value);
+            },
+
+            // Chat configuration
+            mode: 'window',
+            showWelcomeScreen: false,
+            enableStreaming: false, // Set to true to test streaming mode
+            
+            // Styling
+            theme: {},
+            
+            i18n: {
+                en: {
+                    title: 'n8n Chat Test',
+                    subtitle: 'Button feature demo',
+                    inputPlaceholder: 'Type a message or click a button...',
+                }
+            }
+        });
+
+        console.log('✅ n8n Chat initialized with button support!');
+        console.log('📝 Make sure your webhook URL is correct above');
+    </script>
+</body>
+</html>

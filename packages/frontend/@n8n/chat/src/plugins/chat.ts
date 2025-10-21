@@ -16,6 +16,7 @@ import {
 	handleNodeStart,
 	handleNodeComplete,
 } from '@n8n/chat/utils/streamingHandlers';
+import { parseButtonsFromText } from '@n8n/chat/utils/richMessage';
 
 /**
  * Creates a new user message object with a unique ID
@@ -148,6 +149,35 @@ async function handleStreamingMessage(config: StreamingMessageConfig): Promise<v
 	// Check if no chunks were received (empty stream)
 	if (!hasReceivedChunks) {
 		handleEmptyStreamResponse({ receivedMessage, messages });
+		return;
+	}
+
+	// Post-process streamed messages for button markup
+	if (receivedMessage.value && receivedMessage.value.text) {
+		const parsed = parseButtonsFromText(receivedMessage.value.text);
+
+		if (parsed.kind === 'buttons') {
+			// Update the existing message text to remove button markup
+			const messageIndex = messages.value.findIndex((m) => m.id === receivedMessage.value?.id);
+			if (messageIndex !== -1) {
+				const updatedTextMsg = {
+					...receivedMessage.value,
+					text: parsed.text,
+				};
+				messages.value[messageIndex] = updatedTextMsg;
+				receivedMessage.value = updatedTextMsg;
+			}
+
+			// Add button component message
+			const buttonMsg: ChatMessage = {
+				id: uuidv4(),
+				type: 'component',
+				key: 'buttons',
+				arguments: parsed.args as unknown as Record<string, unknown>,
+				sender: 'bot',
+			};
+			messages.value.push(buttonMsg);
+		}
 	}
 }
 
@@ -162,11 +192,15 @@ interface NonStreamingMessageConfig {
  * Handles sending messages without streaming
  * Sends the message and processes the complete response
  * @param config - Configuration object for non-streaming message handling
- * @returns The API response or a bot message
+ * @returns The API response or a bot message (or multiple messages if buttons are detected)
  */
 async function handleNonStreamingMessage(
 	config: NonStreamingMessageConfig,
-): Promise<{ response?: SendMessageResponse; botMessage?: ChatMessageText }> {
+): Promise<{
+	response?: SendMessageResponse;
+	botMessage?: ChatMessageText;
+	botMessages?: ChatMessage[];
+}> {
 	const { text, files, sessionId, options } = config;
 
 	const sendMessageResponse = await api.sendMessage(text, files, sessionId, options);
@@ -175,8 +209,38 @@ async function handleNonStreamingMessage(
 		return { response: sendMessageResponse };
 	}
 
+	const textMessage = processMessageResponse(sendMessageResponse);
+
+	// Parse for button markup
+	const parsed = parseButtonsFromText(textMessage);
+
+	if (parsed.kind === 'buttons') {
+		// Create a text message with cleaned content (without markup)
+		const textMsg = createBotMessage();
+		textMsg.text = parsed.text;
+
+		// Create a button component message
+		const buttonMsg: ChatMessage = {
+			id: uuidv4(),
+			type: 'component',
+			key: 'buttons',
+			arguments: parsed.args as unknown as Record<string, unknown>,
+			sender: 'bot',
+		};
+
+		// Return both messages - text first, then buttons
+		const messages: ChatMessage[] = [];
+		if (parsed.text.trim().length > 0) {
+			messages.push(textMsg);
+		}
+		messages.push(buttonMsg);
+
+		return { botMessages: messages };
+	}
+
+	// No buttons found, return regular text message
 	const receivedMessage = createBotMessage();
-	receivedMessage.text = processMessageResponse(sendMessageResponse);
+	receivedMessage.text = textMessage;
 	return { botMessage: receivedMessage };
 }
 
@@ -239,6 +303,14 @@ export const ChatPlugin: Plugin<ChatOptions> = {
 					if (result.botMessage) {
 						receivedMessage.value = result.botMessage;
 						messages.value.push(result.botMessage);
+					} else if (result.botMessages) {
+						// Handle multiple messages (e.g., text + buttons)
+						result.botMessages.forEach((msg) => {
+							messages.value.push(msg);
+							if (msg.type !== 'component' && 'text' in msg) {
+								receivedMessage.value = msg as ChatMessageText;
+							}
+						});
 					}
 				}
 			} catch (error) {

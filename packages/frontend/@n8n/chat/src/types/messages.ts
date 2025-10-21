@@ -17,3 +17,17 @@ interface ChatMessageBase {
 	sender: 'user' | 'bot';
 	files?: File[];
 }
+
+// Button component message types
+export interface ButtonOption {
+	id?: string;
+	label: string;
+	value: string;
+	url?: string;
+}
+
+export interface ButtonsMessageArgs {
+	title?: string;
+	multiple?: boolean;
+	options: ButtonOption[];
+}

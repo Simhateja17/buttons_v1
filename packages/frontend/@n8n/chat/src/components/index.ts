@@ -6,5 +6,6 @@ export { default as GetStartedFooter } from './GetStartedFooter.vue';
 export { default as Input } from './Input.vue';
 export { default as Layout } from './Layout.vue';
 export { default as Message } from './Message.vue';
+export { default as MessageButtons } from './MessageButtons.vue';
 export { default as MessagesList } from './MessagesList.vue';
 export { default as PoweredBy } from './PoweredBy.vue';

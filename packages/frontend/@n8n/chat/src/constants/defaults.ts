@@ -1,4 +1,5 @@
 import type { ChatOptions } from '@n8n/chat/types';
+import { MessageButtons } from '@n8n/chat/components';
 
 export const defaultOptions: ChatOptions = {
 	webhookUrl: 'http://localhost:5678',
@@ -25,6 +26,9 @@ export const defaultOptions: ChatOptions = {
 		},
 	},
 	theme: {},
+	messageComponents: {
+		buttons: MessageButtons,
+	},
 	enableStreaming: false,
 };
 

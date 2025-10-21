@@ -1,0 +1,245 @@
+{
+  "name": "Daniel's Chat - AI + Buttons (Production Ready)",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "mode": "webhook",
+        "options": {
+          "allowedOrigins": "http://localhost:8000,http://127.0.0.1:8000,http://localhost:3000,*"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [-1160, -460],
+      "id": "433cb69c-b0ff-486a-a375-5f75dd6ece22",
+      "name": "When chat message received",
+      "webhookId": "bf551d75-6e6f-4c8d-b3c6-51f6d045446d"
+    },
+    {
+      "parameters": {
+        "resource": "execution",
+        "limit": 3,
+        "filters": {
+          "workflowId": {
+            "__rl": true,
+            "value": "7wqzZfZrn4EgohZQ",
+            "mode": "list",
+            "cachedResultName": "set Chtabot-Briefing (#7wqzZfZrn4EgohZQ)"
+          },
+          "status": "success"
+        },
+        "options": {
+          "activeWorkflows": true
+        },
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-base.n8n",
+      "typeVersion": 1,
+      "position": [-660, -160],
+      "id": "f61b1973-5b43-41dd-a3fd-17b8539f7f7b",
+      "name": "Get many executions",
+      "credentials": {
+        "n8nApi": {
+          "id": "C77cHNzYtOnWgIvN",
+          "name": "n8n account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sortFieldsUi": {
+          "sortField": [
+            {
+              "fieldName": "stoppedAt",
+              "order": "descending"
+            }
+          ]
+        },
+        "options": {
+          "disableDotNotation": false
+        }
+      },
+      "type": "n8n-nodes-base.sort",
+      "typeVersion": 1,
+      "position": [-440, -80],
+      "id": "3f67ac5b-fea1-4d59-8d04-832e1ccf0a2d",
+      "name": "Sort"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0f0aaede-beae-4bcb-9047-3bf9f9d7d047",
+              "name": "version",
+              "value": "={{ $json.data.resultData.runData.Webhook[0].data.main[0][0].json.body.version }}",
+              "type": "number"
+            },
+            {
+              "id": "83be7ac8-7244-472b-ab8d-224131d34fdb",
+              "name": "system_message",
+              "value": "={{ $json.data.resultData.runData.Webhook[0].data.main[0][0].json.body.briefing }}\n\n---\n🎯 BUTTON FEATURE - INTERACTIVE UI:\n\nWhen you want users to make choices easily, use this button format in your response:\n\n```buttons\n{\n  \"title\": \"Optional title text\",\n  \"options\": [\n    {\"label\": \"Button Label\", \"value\": \"VALUE_SENT_BACK\"},\n    {\"label\": \"Another Option\", \"value\": \"OTHER_VALUE\"}\n  ]\n}\n```\n\n📋 WHEN TO USE BUTTONS:\n1. **Initial Greeting**: Always offer topic selection buttons\n2. **Yes/No Questions**: Use [Ja] [Nein] buttons instead of asking to type\n3. **Multiple Choice**: Number of children, departments, options\n4. **After Information**: [Neue Berechnung] [Weitere Fragen] [Kontakt]\n5. **Navigation**: Guide users through multi-step processes\n\n⚠️ CRITICAL - WissenDB Handling:\n- WissenDB tool may be EMPTY or return no results (testing phase)\n- If WissenDB fails or returns nothing: Use your knowledge to answer helpfully\n- ALWAYS provide useful responses even without database data\n- Generate contextual buttons based on conversation flow, not DB dependency\n\n🔍 WissenDB Usage (when data available):\n1. Extract keywords from user questions\n2. Search WissenDB with those keywords\n3. Synthesize DB results into answers\n4. Include source_id from metadata (e.g., \"Quelle: 60CVXZ\")\n5. If no results, fall back to general knowledge\n\n📌 EXAMPLE CONVERSATION FLOWS:\n\n**Flow 1: Initial Greeting (ALWAYS use buttons)**\n```\nWillkommen! Wie kann ich Ihnen heute helfen?\n\n```buttons\n{\n  \"title\": \"Wählen Sie ein Thema:\",\n  \"options\": [\n    {\"label\": \"🧮 Kirchenbeitrag berechnen\", \"value\": \"CALC_KB\"},\n    {\"label\": \"📚 Allgemeine Informationen\", \"value\": \"INFO_GENERAL\"},\n    {\"label\": \"👤 Mitgliedschaft\", \"value\": \"INFO_MEMBERSHIP\"},\n    {\"label\": \"💬 Andere Frage\", \"value\": \"OTHER_QUESTION\"}\n  ]\n}\n```\n```\n\n**Flow 2: Calculation Request**\n```\nUser clicks: [Kirchenbeitrag berechnen]\n\nYou: \"Gerne helfe ich Ihnen bei der Berechnung! Haben Sie Kinder?\n\n```buttons\n{\n  \"options\": [\n    {\"label\": \"✅ Ja, ich habe Kinder\", \"value\": \"HAS_CHILDREN\"},\n    {\"label\": \"❌ Nein, keine Kinder\", \"value\": \"NO_CHILDREN\"}\n  ]\n}\n```\"\n```\n\n**Flow 3: Children Count**\n```\nUser clicks: [Ja, ich habe Kinder]\n\nYou: \"Wie viele Kinder haben Sie?\n\n```buttons\n{\n  \"options\": [\n    {\"label\": \"1 Kind\", \"value\": \"CHILDREN_1\"},\n    {\"label\": \"2 Kinder\", \"value\": \"CHILDREN_2\"},\n    {\"label\": \"3 Kinder\", \"value\": \"CHILDREN_3\"},\n    {\"label\": \"4 oder mehr\", \"value\": \"CHILDREN_4_PLUS\"}\n  ]\n}\n```\"\n```\n\n**Flow 4: After Providing Information**\n```\nYou: \"... (your detailed answer here). \n\nKann ich Ihnen noch weiterhelfen?\n\n```buttons\n{\n  \"options\": [\n    {\"label\": \"✅ Ja, weitere Frage\", \"value\": \"MORE_QUESTIONS\"},\n    {\"label\": \"🔄 Neue Berechnung\", \"value\": \"NEW_CALCULATION\"},\n    {\"label\": \"📞 Kontakt aufnehmen\", \"value\": \"CONTACT\"},\n    {\"label\": \"❌ Nein, danke\", \"value\": \"END_CHAT\"}\n  ]\n}\n```\"\n```\n\n🎨 BUTTON BEST PRACTICES:\n- Use emojis in labels for visual appeal (💼 🧮 📚 ✅ ❌)\n- Keep button labels short and clear (max 4-5 words)\n- Values should be UPPERCASE_WITH_UNDERSCORES for clarity\n- Always offer 2-4 buttons (not too many, not too few)\n- Use descriptive titles when context needs clarification\n\n💡 HANDLING BUTTON VALUES:\n- When user clicks button, you receive the \"value\" as their next message\n- Example: User clicks \"Ja, ich habe Kinder\" → You receive \"HAS_CHILDREN\"\n- Respond naturally: \"Super! Wie viele Kinder...\" (not \"You selected HAS_CHILDREN\")\n- Use the value to understand context and continue conversation smoothly\n\nRemember: Buttons dramatically improve UX - use them proactively!",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [-220, -80],
+      "id": "982744be-96a6-404f-9d75-59b5ce3bd8a1",
+      "name": "set System Message",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('When chat message received').item.json.chatInput }}",
+        "options": {
+          "systemMessage": "={{ $json.system_message }}",
+          "returnIntermediateSteps": true
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [160, -360],
+      "id": "f473469f-6d09-4bff-87e3-19ca3c1f55d1",
+      "name": "AI Agent",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('When chat message received').item.json.sessionId }}",
+        "contextWindowLength": 20
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [140, -120],
+      "id": "da9a519f-d8ed-413e-95fb-8785c168bdb2",
+      "name": "Chat Memory"
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAzureOpenAi",
+      "typeVersion": 1,
+      "position": [40, -60],
+      "id": "2474a40f-52d9-452d-bc7f-b3407e2bb9b1",
+      "name": "Azure OpenAI Chat Model",
+      "credentials": {
+        "azureOpenAiApi": {
+          "id": "mixiXYDMSMj4g0Ry",
+          "name": "Azure Open AI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "name": "Kirchenbeitragsrechner",
+        "description": "Mit diesem Code lässt sich der voraussichtliche Kirchenbeitrag berechnen. Als Input werden zumindest die Werte bruttolohnsteuer (Bruttogehalt abzgl. Sozialversicherung) und anzahl_kinder (Anzahl Kinder) benötigt. Verwende dieses Tool NUR wenn der User BEIDE Werte angegeben hat.",
+        "jsCode": "// n8n-Umgebung\nconst eingaben = query.json.eingaben;\n\n// Variablen\nlet brutto;\nlet eigenbesitz;\nlet gepachtet;\nlet verpachtet;\nlet children_count;\nlet absatz_std;\nlet mindest_empl;\nlet mindest_comp;\nlet standing_alone;\nlet max_steuerausgleich;\nlet mindestbeitrag;\nlet children_money;\nlet steuerausgleich;\nlet absatz_summe;\nlet landwirt;\nlet kirchenbeitrag;\nconst gss_w_1 = 11000;\nconst gss_w_2 = 18000;\nconst gss_w_3 = 31000;\nconst gss_w_4 = 60000;\nconst gss_w_5 = 90000;\nconst gss_w_6 = 1000000;\nconst gss_p_1 = 0.2;\nconst gss_p_2 = 0.35;\nconst gss_p_3 = 0.42;\nconst gss_p_4 = 0.48;\nconst gss_p_5 = 0.5;\nconst gss_p_6 = 0.55;\nconst lw_w_1 = 18200;\nconst lw_w_2 = 36400;\nconst lw_w_3 = 72800;\nconst lw_p_1 = 0.009;\nconst lw_p_2 = 0.008;\nconst lw_p_3 = 0.007;\nconst lw_p_4 = 0.004;\n\nbrutto = eingaben.bruttolohnsteuer;\neigenbesitz = eingaben.eigenbesitz;\ngepachtet = eingaben.gepachtet;\nverpachtet = eingaben.verpachtet;\nchildren_count = eingaben.kinder_anzahl;\nabsatz_std = eingaben.absatz_std;\nmindest_empl = eingaben.mindest_empl;\n\nmindest_comp = 130.5;\nstanding_alone = 43;\nmax_steuerausgleich = 340;\nmindestbeitrag = eingaben.einkommen_fuer_mindestbeitrag_angekreuzt ? mindest_comp : mindest_empl;\nchildren_money = 0;\nsteuerausgleich = 0;\nabsatz_summe = 0;\nlandwirt = 0;\nkirchenbeitrag = 0;\n\nif (children_count === 1) {\n  children_money = 22;\n} else if (children_count === 2) {\n  children_money = 44;\n} else if (children_count >= 3) {\n  children_money = 44 + (children_count - 2) * 36;\n}\n\nif (eingaben.alleinstehend_angekreuzt && brutto > 0 && children_money > 0) {\n  absatz_summe += standing_alone;\n} else if (eingaben.alleinstehend_angekreuzt && brutto === 0) {\n  console.warn(\"Alleinverdiener-/Alleinerzieherabsetzbetrag nicht anwendbar\");\n} else if (eingaben.alleinstehend_angekreuzt && children_money === 0) {\n  console.warn(\"Alleinverdiener-/Alleinerzieherabsetzbetrag nur mit Kindern\");\n}\n\nabsatz_summe += children_money;\nkirchenbeitrag += brutto * 0.011 - absatz_std;\n\nif (eigenbesitz <= lw_w_1 && eigenbesitz > 0) {\n  landwirt += eigenbesitz * lw_p_1;\n} else if (eigenbesitz <= lw_w_2 && eigenbesitz > 0) {\n  landwirt += (eigenbesitz - lw_w_1) * lw_p_2 + lw_w_1 * lw_p_1;\n} else if (eigenbesitz <= lw_w_3 && eigenbesitz > 0) {\n  landwirt += (eigenbesitz - lw_w_2) * lw_p_3 + lw_w_2 * lw_p_2;\n} else if (eigenbesitz > lw_w_3 && eigenbesitz > 0) {\n  landwirt += (eigenbesitz - lw_w_3) * lw_p_4 + (lw_w_2 * lw_p_2 + lw_w_3 * lw_p_3 + lw_w_1 * lw_p_1);\n}\nif (gepachtet <= lw_w_1 && gepachtet > 0) {\n  landwirt += gepachtet * lw_p_1 * 0.75;\n} else if (gepachtet <= lw_w_2 && gepachtet > 0) {\n  landwirt += ((gepachtet - lw_w_1) * lw_p_2 + lw_w_1 * lw_p_1) * 0.75;\n} else if (gepachtet <= lw_w_3 && gepachtet > 0) {\n  landwirt += ((gepachtet - lw_w_2) * lw_p_3 + lw_w_2 * lw_p_2) * 0.75;\n} else if (gepachtet > lw_w_3 && gepachtet > 0) {\n  landwirt += ((gepachtet - lw_w_3) * lw_p_4 + (lw_w_2 * lw_p_2 + lw_w_3 * lw_p_3 + lw_w_1 * lw_p_1)) * 0.75;\n}\nif (verpachtet <= lw_w_1 && verpachtet > 0) {\n  landwirt += verpachtet * lw_p_1 * 0.25;\n} else if (verpachtet <= lw_w_2 && verpachtet > 0) {\n  landwirt += ((verpachtet - lw_w_1) * lw_p_2 + lw_w_1 * lw_p_1) * 0.25;\n} else if (verpachtet <= lw_w_3 && verpachtet > 0) {\n  landwirt += ((verpachtet - lw_w_2) * lw_p_3 + lw_w_2 * lw_p_2) * 0.25;\n} else if (verpachtet > lw_w_3 && verpachtet > 0) {\n  landwirt += ((verpachtet - lw_w_3) * lw_p_4 + (lw_w_2 * lw_p_2 + lw_w_3 * lw_p_3 + lw_w_1 * lw_p_1)) * 0.25;\n}\n\nif (brutto === 0 && landwirt > 0) {\n  kirchenbeitrag += landwirt + absatz_std;\n  kirchenbeitrag -= absatz_summe;\n  if (kirchenbeitrag < mindestbeitrag) {\n    kirchenbeitrag = mindestbeitrag;\n  }\n} else {\n  kirchenbeitrag -= absatz_summe;\n  if (kirchenbeitrag < mindestbeitrag) {\n    kirchenbeitrag = mindestbeitrag;\n  }\n  kirchenbeitrag += landwirt;\n}\n\nif (brutto - gss_w_1 < kirchenbeitrag && brutto - gss_w_1 > 0) {\n  steuerausgleich += (brutto - gss_w_1) * gss_p_1 * gss_p_1;\n} else if (brutto <= gss_w_2) {\n  steuerausgleich += kirchenbeitrag * gss_p_1;\n} else if (brutto - gss_w_2 < kirchenbeitrag && brutto - gss_w_2 > 0) {\n  steuerausgleich += (brutto - gss_w_2) * gss_p_2 * gss_p_2 + (kirchenbeitrag - (brutto - gss_w_2) * gss_p_2) * gss_p_1;\n} else if (brutto <= gss_w_3) {\n  steuerausgleich += kirchenbeitrag * gss_p_2;\n} else if (brutto - gss_w_3 < kirchenbeitrag && brutto - gss_w_3 > 0) {\n  steuerausgleich += (brutto - gss_w_3) * gss_p_3 * gss_p_3 + (kirchenbeitrag - (brutto - gss_w_3) * gss_p_3) * gss_p_2;\n} else if (brutto <= gss_w_4) {\n  steuerausgleich += kirchenbeitrag * gss_p_3;\n} else if (brutto - gss_w_4 < kirchenbeitrag && brutto - gss_w_4 > 0) {\n  steuerausgleich += (brutto - gss_w_4) * gss_p_4 * gss_p_4 + (kirchenbeitrag - (brutto - gss_w_4) * gss_p_4) * gss_p_3;\n} else if (brutto <= gss_w_5) {\n  steuerausgleich += kirchenbeitrag * gss_p_4;\n} else if (brutto - gss_w_5 < kirchenbeitrag && brutto - gss_w_5 > 0) {\n  steuerausgleich += (brutto - gss_w_5) * gss_p_5 * gss_p_5 + (kirchenbeitrag - (brutto - gss_w_5) * gss_p_5) * gss_p_4;\n} else if (brutto <= gss_w_6) {\n  steuerausgleich += kirchenbeitrag * gss_p_5;\n} else if (brutto - gss_w_6 < kirchenbeitrag && brutto - gss_w_6 > 0) {\n  steuerausgleich += (brutto - gss_w_6) * gss_p_6 * gss_p_6 + (kirchenbeitrag - (brutto - gss_w_6) * gss_p_6) * gss_p_5;\n} else if (brutto > gss_w_6) {\n  steuerausgleich += kirchenbeitrag - kirchenbeitrag * gss_p_6;\n}\n\nif (steuerausgleich > max_steuerausgleich) {\n  steuerausgleich = max_steuerausgleich;\n}\nif (steuerausgleich < 0 || brutto === 0) {\n  steuerausgleich = 0;\n}\n\nreturn \"Der voraussichtliche Kirchenbeitrag beträgt \" + Math.round(kirchenbeitrag) + \" Euro. Dabei wurden die Absetzbeträge für \" + children_count + \" Kinder berücksichtigt.\";",
+        "specifyInputSchema": true,
+        "jsonSchemaExample": "{\"json\": {\"eingaben\": {\"lohnsteuer_angekreuzt\": true, \"bruttolohnsteuer\": 40740, \"brutto_anderes_einkommen\": 0, \"eigenbesitz\": 0, \"gepachtet\": 0, \"verpachtet\": 0, \"kinder_anzahl\": 2, \"einkommen_fuer_mindestbeitrag_angekreuzt\": false, \"alleinstehend_angekreuzt\": false, \"absatz_std\": 59, \"mindest_empl\": 34}}}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.1,
+      "position": [260, -120],
+      "id": "69e08a77-80ae-40d4-87a4-a72c6744620e",
+      "name": "Code Tool"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.toolCalculator",
+      "typeVersion": 1,
+      "position": [380, -120],
+      "id": "c5cad698-e628-488c-8c01-15ea53700131",
+      "name": "Calculator"
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolName": "WissenDB",
+        "toolDescription": "OPTIONAL knowledge database. Search this when users ask specific questions. If it returns no results or fails, use your general knowledge to answer. Extract keywords from questions to search (e.g., 'Mitgliedschaft', 'Spenden', 'Kirchenbeitrag'). When data is found, include source_id from metadata (ex: 'Quelle: 60CVXZ').",
+        "milvusCollection": {
+          "__rl": true,
+          "value": "n8n_KB_Wissen",
+          "mode": "list",
+          "cachedResultName": "n8n_KB_Wissen"
+        },
+        "topK": 6
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreMilvus",
+      "typeVersion": 1.1,
+      "position": [500, -120],
+      "id": "b19a699a-996f-40c9-a760-45aae3f70e7f",
+      "name": "WissenDB",
+      "credentials": {
+        "milvusApi": {
+          "id": "0GX74E2lFakbycdh",
+          "name": "Milvus account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "options": {
+          "dimensions": 1536
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsAzureOpenAi",
+      "typeVersion": 1,
+      "position": [480, 120],
+      "id": "6b52457d-0376-4fd1-8a57-5ff1764817f2",
+      "name": "Embeddings Azure OpenAI",
+      "credentials": {
+        "azureOpenAiApi": {
+          "id": "mixiXYDMSMj4g0Ry",
+          "name": "Azure Open AI account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When chat message received": {
+      "main": [[{"node": "Get many executions", "type": "main", "index": 0}]]
+    },
+    "Get many executions": {
+      "main": [[{"node": "Sort", "type": "main", "index": 0}]]
+    },
+    "Sort": {
+      "main": [[{"node": "set System Message", "type": "main", "index": 0}]]
+    },
+    "set System Message": {
+      "main": [[{"node": "AI Agent", "type": "main", "index": 0}]]
+    },
+    "Chat Memory": {
+      "ai_memory": [[{"node": "AI Agent", "type": "ai_memory", "index": 0}]]
+    },
+    "Azure OpenAI Chat Model": {
+      "ai_languageModel": [[{"node": "AI Agent", "type": "ai_languageModel", "index": 0}]]
+    },
+    "Code Tool": {
+      "ai_tool": [[{"node": "AI Agent", "type": "ai_tool", "index": 0}]]
+    },
+    "Calculator": {
+      "ai_tool": [[{"node": "AI Agent", "type": "ai_tool", "index": 0}]]
+    },
+    "WissenDB": {
+      "ai_tool": [[{"node": "AI Agent", "type": "ai_tool", "index": 0}]]
+    },
+    "Embeddings Azure OpenAI": {
+      "ai_embedding": [[{"node": "WissenDB", "type": "ai_embedding", "index": 0}]]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "19eb1d93e111a702ba6b6c8dc45d680041c297075649629449e6202432ab5997"
+  }
+}

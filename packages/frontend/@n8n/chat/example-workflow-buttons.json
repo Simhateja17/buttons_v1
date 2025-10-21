@@ -1,0 +1,63 @@
+{
+  "name": "Chat with Buttons Demo",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "chat",
+        "options": {}
+      },
+      "id": "webhook-chat",
+      "name": "Chat Trigger",
+      "type": "n8n-nodes-base.webhookTrigger",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "chat"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the user's message\nconst userMessage = $input.item.json.chatInput || $input.item.json.message || \"\";\n\n// Initial greeting with buttons\nif (!userMessage || userMessage === \"start\" || userMessage === \"hello\") {\n  return {\n    output: `Welcome! 👋 How can I help you today?\n\n\\`\\`\\`buttons\n{\n  \"title\": \"Choose a department:\",\n  \"options\": [\n    {\"label\": \"💼 Sales\", \"value\": \"SALES\"},\n    {\"label\": \"🛠️ Technical Support\", \"value\": \"SUPPORT\"},\n    {\"label\": \"💳 Billing\", \"value\": \"BILLING\"},\n    {\"label\": \"📞 Contact Us\", \"value\": \"CONTACT\"}\n  ]\n}\n\\`\\`\\`\n`\n  };\n}\n\n// Sales flow\nif (userMessage === \"SALES\") {\n  return {\n    output: `Great! You selected Sales. 💼\n\nDo you already have a customer number?\n\n\\`\\`\\`buttons\n{\n  \"options\": [\n    {\"label\": \"✅ Yes, I have one\", \"value\": \"HAS_CUSTOMER_NUMBER\"},\n    {\"label\": \"❌ No, I'm new\", \"value\": \"NO_CUSTOMER_NUMBER\"}\n  ]\n}\n\\`\\`\\`\n`\n  };\n}\n\nif (userMessage === \"HAS_CUSTOMER_NUMBER\") {\n  return {\n    output: \"Perfect! Please enter your customer number and we'll look you up in our system.\"\n  };\n}\n\nif (userMessage === \"NO_CUSTOMER_NUMBER\") {\n  return {\n    output: `Welcome to our sales team! 🎉\n\nWhat are you interested in?\n\n\\`\\`\\`buttons\n{\n  \"options\": [\n    {\"label\": \"Products\", \"value\": \"PRODUCTS\"},\n    {\"label\": \"Pricing\", \"value\": \"PRICING\"},\n    {\"label\": \"Demo\", \"value\": \"DEMO\"}\n  ]\n}\n\\`\\`\\`\n`\n  };\n}\n\n// Support flow\nif (userMessage === \"SUPPORT\") {\n  return {\n    output: `Technical Support here! 🛠️\n\nWhat kind of issue are you experiencing?\n\n\\`\\`\\`buttons\n{\n  \"title\": \"Select issue type:\",\n  \"options\": [\n    {\"label\": \"🌐 Website Issue\", \"value\": \"WEB_ISSUE\"},\n    {\"label\": \"🔌 API Problem\", \"value\": \"API_ISSUE\"},\n    {\"label\": \"📱 Mobile App\", \"value\": \"MOBILE_ISSUE\"},\n    {\"label\": \"❓ Other\", \"value\": \"OTHER_ISSUE\"}\n  ]\n}\n\\`\\`\\`\n`\n  };\n}\n\nif (userMessage === \"WEB_ISSUE\" || userMessage === \"API_ISSUE\" || userMessage === \"MOBILE_ISSUE\") {\n  return {\n    output: `I understand you're having issues. Let me connect you with a specialist.\n\nWould you like to:\n\n\\`\\`\\`buttons\n{\n  \"options\": [\n    {\"label\": \"📧 Email Support\", \"value\": \"EMAIL_SUPPORT\"},\n    {\"label\": \"💬 Live Chat\", \"value\": \"LIVE_CHAT\"},\n    {\"label\": \"📚 Check Documentation\", \"value\": \"DOCS\", \"url\": \"https://docs.n8n.io\"}\n  ]\n}\n\\`\\`\\`\n`\n  };\n}\n\n// Billing flow\nif (userMessage === \"BILLING\") {\n  return {\n    output: `Billing Department 💳\n\nHow can we help with your billing?\n\n\\`\\`\\`buttons\n{\n  \"options\": [\n    {\"label\": \"View Invoice\", \"value\": \"VIEW_INVOICE\"},\n    {\"label\": \"Payment Issue\", \"value\": \"PAYMENT_ISSUE\"},\n    {\"label\": \"Change Plan\", \"value\": \"CHANGE_PLAN\"},\n    {\"label\": \"Cancel Subscription\", \"value\": \"CANCEL\"}\n  ]\n}\n\\`\\`\\`\n`\n  };\n}\n\n// Contact flow\nif (userMessage === \"CONTACT\") {\n  return {\n    output: `Contact Information 📞\n\nChoose your preferred contact method:\n\n\\`\\`\\`buttons\n{\n  \"options\": [\n    {\"label\": \"📧 Email\", \"value\": \"CONTACT_EMAIL\", \"url\": \"mailto:support@example.com\"},\n    {\"label\": \"📞 Phone\", \"value\": \"CONTACT_PHONE\"},\n    {\"label\": \"🌐 Website\", \"value\": \"CONTACT_WEB\", \"url\": \"https://example.com/contact\"}\n  ]\n}\n\\`\\`\\`\n`\n  };\n}\n\n// Default response for any other input\nreturn {\n  output: `I received: \"${userMessage}\"\n\nWould you like to start over?\n\n\\`\\`\\`buttons\n{\n  \"options\": [\n    {\"label\": \"🔄 Start Over\", \"value\": \"start\"},\n    {\"label\": \"❌ End Chat\", \"value\": \"END\"}\n  ]\n}\n\\`\\`\\`\n`\n};"
+      },
+      "id": "code-buttons",
+      "name": "Generate Response with Buttons",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "={{ $json.output }}",
+        "options": {}
+      },
+      "id": "respond",
+      "name": "Send Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [680, 300]
+    }
+  ],
+  "connections": {
+    "Chat Trigger": {
+      "main": [
+        [
+          {
+            "node": "Generate Response with Buttons",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Response with Buttons": {
+      "main": [
+        [
+          {
+            "node": "Send Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {}
+}

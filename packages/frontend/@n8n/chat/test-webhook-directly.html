@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Button Test - Daniel's Workflow</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        .test-panel {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #333; margin-top: 0; }
+        .status {
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        .warning { background: #fff3cd; color: #856404; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover { background: #0056b3; }
+        .test-area {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            font-family: monospace;
+        }
+        .response {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-panel">
+        <h1>🧪 Button Feature Test - Daniel's Workflow</h1>
+        
+        <div class="status info">
+            <strong>Webhook URL:</strong><br>
+            <code>http://52.137.186.215:5678/webhook/bf551d75-6e6f-4c8d-b3c6-51f6d045446d/chat</code>
+        </div>
+
+        <h2>Test Scenarios:</h2>
+        
+        <div class="test-area">
+            <h3>Test 1: Send "Hallo" (should get AI response, maybe with buttons)</h3>
+            <button onclick="testMessage('Hallo')">Test: Hallo</button>
+            
+            <h3>Test 2: Send "Ich möchte den Kirchenbeitrag berechnen"</h3>
+            <button onclick="testMessage('Ich möchte den Kirchenbeitrag berechnen')">Test: Calculation Request</button>
+            
+            <h3>Test 3: Send "Haben Sie Informationen über..."</h3>
+            <button onclick="testMessage('Haben Sie Informationen über Mitgliedschaft?')">Test: Info Query</button>
+
+            <h3>Test 4: Custom Message</h3>
+            <input type="text" id="customInput" placeholder="Enter your message" style="width: 60%; padding: 10px;">
+            <button onclick="testCustomMessage()">Send Custom</button>
+        </div>
+
+        <h2>Response:</h2>
+        <div class="response" id="response">
+            <em>No response yet. Click a test button above.</em>
+        </div>
+
+        <div class="status warning">
+            <strong>⚠️ Important:</strong><br>
+            1. Make sure Daniel's workflow is <strong>active</strong> in n8n<br>
+            2. The AI Agent should generate responses with button markup like:<br>
+            <pre>```buttons\n{"options": [{"label": "Yes", "value": "YES"}]}\n```</pre>
+            3. Once you see button markup in the response, the frontend integration will work!
+        </div>
+    </div>
+
+    <script>
+        let sessionId = 'test-session-' + Date.now();
+
+        async function testMessage(message) {
+            const responseDiv = document.getElementById('response');
+            responseDiv.innerHTML = '<em>Sending message...</em>';
+
+            try {
+                const response = await fetch('http://52.137.186.215:5678/webhook/bf551d75-6e6f-4c8d-b3c6-51f6d045446d/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        chatInput: message,
+                        sessionId: sessionId
+                    })
+                });
+
+                const data = await response.json();
+                
+                responseDiv.innerHTML = `
+                    <h3>✅ Response Received!</h3>
+                    <p><strong>Status:</strong> ${response.status}</p>
+                    <p><strong>Your Message:</strong> ${message}</p>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                    ${checkForButtons(data) ? 
+                        '<div class="status success">🎉 <strong>BUTTONS DETECTED!</strong> The AI generated button markup. Frontend will render these as interactive buttons!</div>' : 
+                        '<div class="status info">ℹ️ No button markup detected in this response. Try asking for options or choices.</div>'
+                    }
+                `;
+            } catch (error) {
+                responseDiv.innerHTML = `
+                    <h3>❌ Error</h3>
+                    <p style="color: red;">${error.message}</p>
+                    <p>Make sure:</p>
+                    <ul>
+                        <li>Daniel's workflow is active</li>
+                        <li>The webhook URL is correct</li>
+                        <li>No firewall blocking the request</li>
+                    </ul>
+                `;
+            }
+        }
+
+        function testCustomMessage() {
+            const input = document.getElementById('customInput');
+            const message = input.value.trim();
+            if (message) {
+                testMessage(message);
+            } else {
+                alert('Please enter a message first!');
+            }
+        }
+
+        function checkForButtons(data) {
+            const jsonString = JSON.stringify(data);
+            return jsonString.includes('```buttons') || 
+                   jsonString.includes('<buttons>') || 
+                   jsonString.includes('[BUTTONS]');
+        }
+
+        console.log('✅ Test page ready!');
+        console.log('Session ID:', sessionId);
+    </script>
+</body>
+</html>

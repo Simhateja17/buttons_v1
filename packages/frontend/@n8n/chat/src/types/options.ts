@@ -30,6 +30,7 @@ export interface ChatOptions {
 	>;
 	theme?: {};
 	messageComponents?: Record<string, Component>;
+	onAction?: (action: string, value: unknown) => void;
 	disabled?: Ref<boolean>;
 	allowFileUploads?: Ref<boolean> | boolean;
 	allowedFilesMimeTypes?: Ref<string> | string;
