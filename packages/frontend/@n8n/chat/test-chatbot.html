@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>n8n Chatbot Test</title>
+    <link rel="stylesheet" href="./dist/style.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        p {
+            color: #666;
+            margin-bottom: 20px;
+        }
+        .info {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .info h3 {
+            margin-top: 0;
+            color: #667eea;
+        }
+        .info code {
+            background: #fff;
+            padding: 2px 6px;
+            border-radius: 3px;
+            color: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 n8n Chatbot Test</h1>
+        <p>Welcome to the n8n chatbot test page. The chat widget should appear in the bottom-right corner.</p>
+        
+        <div class="info">
+            <h3>⚙️ Configuration Needed</h3>
+            <p>To make this chatbot work, you need to:</p>
+            <ol>
+                <li><strong>Create a webhook workflow in n8n</strong>
+                    <ul>
+                        <li>Go to your n8n instance</li>
+                        <li>Create a new workflow with a Webhook node</li>
+                        <li>Set the webhook to accept POST requests</li>
+                        <li>Copy the webhook URL</li>
+                    </ul>
+                </li>
+                <li><strong>Update the webhookUrl below</strong> in this HTML file</li>
+                <li><strong>Optional:</strong> Customize the appearance and behavior</li>
+            </ol>
+        </div>
+
+        <div class="info">
+            <h3>📋 Sample n8n Workflow</h3>
+            <p>Your n8n workflow should:</p>
+            <ul>
+                <li>Start with a <strong>Webhook</strong> node (POST method)</li>
+                <li>Process the incoming message from <code>{{ $json.message }}</code></li>
+                <li>Add your logic (AI, database lookup, etc.)</li>
+                <li>Return a response in this format:</li>
+            </ul>
+            <pre style="background: #2d2d2d; color: #f8f8f2; padding: 15px; border-radius: 5px; overflow-x: auto;">
+{
+  "output": "Your bot's response here"
+}</pre>
+        </div>
+    </div>
+
+    <!-- Load the n8n chat widget -->
+    <script type="module">
+        import { createChat } from './dist/chat.bundle.es.js';
+
+        // Your n8n webhook URL
+        const webhookUrl = 'http://52.137.186.215:5678/webhook/bf551d75-6e6f-4c8d-b3c6-51f6d045446d/chat';
+        
+        // Create the chat widget
+        createChat({
+            // Your n8n webhook URL
+            webhookUrl: webhookUrl,
+            
+            // Initial message from the bot
+            initialMessages: [
+                'Hello! 👋 I\'m your n8n chatbot assistant.',
+                'How can I help you today?'
+            ],
+            
+            // Customize the appearance
+            theme: {
+                primaryColor: '#667eea',
+            },
+            
+            // Widget configuration
+            chatWindowConfig: {
+                title: 'n8n Assistant',
+                subtitle: 'Powered by n8n',
+                welcomeMessage: 'Hi there! 👋',
+            },
+            
+            // Show the chat window by default (for testing)
+            defaultOpen: true,
+        });
+    </script>
+</body>
+</html>

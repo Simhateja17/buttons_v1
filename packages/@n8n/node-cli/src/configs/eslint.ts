@@ -64,7 +64,9 @@ function createConfig(supportCloud = true): ConfigArray {
 		},
 	);
 }
-export const config = createConfig();
-export const configWithoutCloudSupport = createConfig(false);
+
+// ✅ Explicitly type exports to avoid TS2742
+export const config: ConfigArray = createConfig();
+export const configWithoutCloudSupport: ConfigArray = createConfig(false);
 
 export default config;
